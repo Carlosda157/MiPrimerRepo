@@ -3,89 +3,103 @@ Diseña una biblioteca de utilidades para validar y dar formato a información i
 
 """
 from datetime import date
-nombres = []
-numeros = []
-numeros_format = []
-correo = []
-correo_valid = []
-años = []
-fecha_nacimiento = []
-def pedir_datos():
-    i=0
+
+"""
+validaciones y transformaciones
+
+"""
+
+def es_telefono_valido(numero: str) -> bool:
+    return numero.isdigit() and len(numero) == 9
+
+def formatear_telefono(numero: str) -> str:
+    return f"+51-{numero[0:3]}-{numero[3:]}"
+
+
+def es_anio_valido(anio: str) -> bool:
+    return anio.isdigit() and len(anio) == 4
+
+def calcular_edad(anio_nacimiento: str) -> int:
+    return date.today().year - int(anio_nacimiento)
+
+def es_email_valido(correo: str) -> bool:
+    return correo.strip().endswith("@gmail.com") and len(correo.strip()) > len("@gmail.com")
+
+
+"""ENTRADAS"""
+
+
+def pedir_entero_positivo(mensaje: str) -> int:
     while True:
         try:
-            personas = int(input("Digite el numero de personas a validar:"))
-            if((personas<=0)):
+            valor = int(input(mensaje))
+            if valor <= 0:
                 print("Ingrese una cantidad mayor que 0.")
                 continue
+            return valor
         except ValueError:
-            print("Ingrese una cantidad valida.")
-            continue
-        while True:
-            name = input("Nombre:")
-            num = input("Numero:")
-            if(len(num)==9):
-                numeros.append(num)
-                nombres.append(name)
-            else:
-                print("Ingresa un numero valido de 9 digitos.")
-                continue
-            
-            fech = input("Ingrese la fecha de nacimiento formato (año):")
-            if(len(fech)==4):
-                fecha_nacimiento.append(fech)
-                i += 1
-                if i >= personas:
-                    break
-            else:
-                print("Ingrese un año valido.")
-                continue
-        break
-    return personas
+            print("Ingrese una cantidad válida.")
 
-def formatear_telefono(numeros):
-    for numero in numeros:
-        numeros_format.append(f"+51-{numero[0:3]}-{numero[3:]}")
 
-def validar_email(correo, correo_valid):
+def pedir_telefono() -> str:
+    while True:
+        num = input("Número: ").strip()
+        if es_telefono_valido(num):
+            return num
+        print("Ingresa un número válido de 9 dígitos.")
+
+
+def pedir_anio_nacimiento() -> str:
+    while True:
+        fech = input("Ingrese el año de nacimiento (formato AAAA): ").strip()
+        if es_anio_valido(fech):
+            return fech
+        print("Ingrese un año válido.")
+
+
+def pedir_email() -> str:
     while True:
         corr = input("Ingrese su correo: ").strip()
-
-        # Verifica si termina en @gmail.com y tiene texto antes del @
-        if corr.endswith("@gmail.com") and len(corr) > 10:
-            correo.append(corr)
-            correo_valid.append(corr)
+        if es_email_valido(corr):
             print("Correo válido guardado con éxito.")
-            valor = True
-            break
-        else:
-            print("Correo no válido. Debe terminar en @gmail.com")           
-    return valor     
+            return corr
+        print("Correo no válido. Debe terminar en @gmail.com")
+
+def pedir_datos_persona() -> dict:
+    """Pide todos los datos de UNA persona, incluido su correo."""
+    nombre = input("Nombre: ").strip()
+    numero = pedir_telefono()
+    anio = pedir_anio_nacimiento()
+    correo = pedir_email()
+    return {
+        "nombre": nombre,
+        "telefono": formatear_telefono(numero),
+        "edad": calcular_edad(anio),
+        "correo": correo,
+    }
+
+def pedir_datos() -> list[dict]:
+    cantidad = pedir_entero_positivo("Digite el número de personas a validar: ")
+    personas = []
+    for _ in range(cantidad):
+        personas.append(pedir_datos_persona())
+    return personas
+
+
+def mostrar_datos(personas: list[dict]) -> None:
+    print(f"\nSe han ingresado {len(personas)} personas a la lista.")
+    print("-------Datos validados.-----")
+    print("A continuación estos son los datos de los clientes:\n")
+    print(f"{'CLIENTE':<20}{'EDAD':<10}{'TELÉFONO':<15}{'CORREO'}")
+    for p in personas:
+        print(f"{p['nombre']:<20}{p['edad']:<10}{p['telefono']:<15}{p['correo']}")
 
 
 
-def calcular_edad(fecha_nacimiento):
-    fecha_actual = date.today()
-    formato = fecha_actual.strftime("%Y")
-    for fecha in fecha_nacimiento:
-        
-        años.append(int(formato) - int(fecha))
+def main():
+    personas = pedir_datos()
+    mostrar_datos(personas)
+ 
 
-
-def mostrar_datos():
-    per=pedir_datos()
-    varr = validar_email(correo, correo_valid) 
-    formatear_telefono(numeros)
-    calcular_edad(fecha_nacimiento)
-    if(varr == True):
-        print(f"se ha ingresado {per} personas a la lista.")
-        print("""-------Datos validados.-----
-A continuacion estos son los datos de los clientes:\n""")
-        print("CLIENTE              EDAD                        TELEFONO")
-        for i in range(per):
-            print(f"{nombres[i]}       |        {años[i]}            |            {numeros_format[i]}")
-        
-
-
-mostrar_datos()
-
+if __name__ == "__main__":
+    main()
